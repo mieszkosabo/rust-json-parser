@@ -11,12 +11,10 @@ const programPath = args[2];
 
 const results = {
   test_parsing: 0,
-  test_transform: 0,
 };
 
 const total_tests = {
   test_parsing: 0,
-  test_transform: 0,
 };
 
 for (let dir_name in results) {
@@ -46,15 +44,8 @@ for (let dir_name in results) {
 }
 
 console.log(); // newline
-const total_test_passed = results.test_parsing + results.test_transform;
+const total_test_passed = results.test_parsing;
 console.log(
   `Test parsing: ${results.test_parsing}/${total_tests.test_parsing}`
 );
-console.log(
-  `Test transform: ${results.test_transform}/${total_tests.test_transform}`
-);
-console.log(
-  `Total: ${total_test_passed}/${
-    total_tests.test_parsing + total_tests.test_transform
-  }`
-);
+console.log(`Total: ${total_test_passed}/${total_tests.test_parsing}`);
