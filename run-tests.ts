@@ -19,7 +19,7 @@ const total_tests = {
 
 for (let dir_name in results) {
   const testParsingDir = join("tests", dir_name);
-  const testParsingFiles = await readdir(testParsingDir);
+  const testParsingFiles = (await readdir(testParsingDir)).toSorted();
   console.log(`Running ${dir_name} tests...`);
 
   for (const test of testParsingFiles) {
