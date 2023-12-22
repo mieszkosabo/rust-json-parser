@@ -23,6 +23,7 @@ use winnow::combinator::separated;
 use winnow::error::ErrMode;
 use winnow::error::ErrorKind;
 use winnow::error::ParserError;
+use winnow::stream::AsChar;
 use winnow::token::one_of;
 use winnow::token::{none_of, take_while};
 use winnow::PResult;
@@ -114,13 +115,22 @@ fn string_parser(input: &mut &str) -> PResult<JSONValue> {
     let res = escaped(
         none_of(['"', '\\']),
         '\\',
-        one_of(['"', '\\', '/', 'b', 'f', 'n', 'r', 't']), // TODO: unicode
+        alt((escaped_characters_parser, unicode_parser)),
     )
     .parse_next(input)
     .map(|s| JSONValue::String(OsString::from(s)));
     '"'.parse_next(input)?;
 
     res
+}
+
+fn escaped_characters_parser<'a>(input: &mut &'a str) -> PResult<&'a str> {
+    alt(("\"", "\\", "/", "b", "f", "n", "r", "t")).parse_next(input)
+}
+
+fn unicode_parser<'a>(input: &mut &'a str) -> PResult<&'a str> {
+    "u".parse_next(input)?;
+    take_while(4, AsChar::is_hex_digit).parse_next(input)
 }
 
 fn whitespace_parser(input: &mut &str) -> PResult<()> {
