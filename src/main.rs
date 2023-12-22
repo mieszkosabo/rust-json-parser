@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use std::ffi::{OsStr, OsString};
+use std::ffi::OsString;
 use std::{env, fs};
 
 fn main() {
@@ -16,7 +16,6 @@ fn main() {
     }
 }
 
-use winnow::ascii::alphanumeric0;
 use winnow::ascii::escaped;
 use winnow::ascii::float;
 use winnow::combinator::alt;
@@ -25,7 +24,7 @@ use winnow::error::ErrMode;
 use winnow::error::ErrorKind;
 use winnow::error::ParserError;
 use winnow::token::one_of;
-use winnow::token::take_while;
+use winnow::token::{none_of, take_while};
 use winnow::PResult;
 use winnow::Parser;
 
@@ -37,14 +36,8 @@ enum JSONValue {
     Number(f64),
     String(OsString),
     Array(Vec<JSONValue>),
-    Object(Vec<(String, JSONValue)>),
+    Object(Vec<(OsString, JSONValue)>),
 }
-
-// impl JSONValue {
-//     fn from_str(s: &str) -> Result<Self, String> {
-//         json_value_parser(&mut s).map_err(|e| e.to_string())
-//     }
-// }
 
 impl FromStr for JSONValue {
     type Err = String;
@@ -98,7 +91,7 @@ fn object_parser(input: &mut &str) -> PResult<JSONValue> {
     res
 }
 
-fn obj_key_value_parser(input: &mut &str) -> PResult<(String, JSONValue)> {
+fn obj_key_value_parser(input: &mut &str) -> PResult<(OsString, JSONValue)> {
     whitespace_parser(input)?;
     let key = match string_parser(input) {
         Ok(JSONValue::String(s)) => s,
@@ -119,12 +112,12 @@ fn number_parser(input: &mut &str) -> PResult<JSONValue> {
 fn string_parser(input: &mut &str) -> PResult<JSONValue> {
     '"'.parse_next(input)?;
     let res = escaped(
-        alphanumeric0,
+        none_of(['"', '\\']),
         '\\',
         one_of(['"', '\\', '/', 'b', 'f', 'n', 'r', 't']), // TODO: unicode
     )
     .parse_next(input)
-    .map(|s| JSONValue::String(s.to_string()));
+    .map(|s| JSONValue::String(OsString::from(s)));
     '"'.parse_next(input)?;
 
     res
@@ -166,7 +159,7 @@ mod tests {
         assert_eq!(JSONValue::from_str("1.0"), Ok(JSONValue::Number(1.0)));
         assert_eq!(
             JSONValue::from_str("\"hello\""),
-            Ok(JSONValue::String("hello".to_string()))
+            Ok(JSONValue::String(OsString::from("hello")))
         );
     }
 
@@ -174,7 +167,14 @@ mod tests {
     fn with_non_utf8() {
         assert_eq!(
             JSONValue::from_str("\"€𝄞\""),
-            Ok(JSONValue::String("€𝄞".to_string()))
+            Ok(JSONValue::String(OsString::from("€𝄞")))
         )
+    }
+
+    #[test]
+    fn ts() {
+        let c = "€𝄞";
+
+        println!("{:?}", c);
     }
 }
