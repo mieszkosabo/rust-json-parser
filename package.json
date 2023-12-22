@@ -1,0 +1,14 @@
+{
+  "name": "rust-json-parser",
+  "module": "run-tests.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "test-correctness": "cargo build && bun run-tests.ts ./target/debug/rust-json-parser"
+  }
+}
