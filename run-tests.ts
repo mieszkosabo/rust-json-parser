@@ -31,6 +31,7 @@ for (let dir_name in results) {
     if (filePrefix === "i") {
       // result doesn't matter as long as it doesn't crash
       results[dir_name as keyof typeof results]++;
+      process.stdout.write("\x1b[32mOK\x1b[0m\n");
     } else if (
       (filePrefix === "y" && result === "0") ||
       (filePrefix === "n" && result === "1")
